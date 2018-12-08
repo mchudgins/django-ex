@@ -6,7 +6,7 @@ The steps in this document assume that you have access to an OpenShift deploymen
 
 ## What has been done for you
 
-This is a minimal Django 1.8 project. It was created with these steps:
+This is a minimal Django 1.11 project. It was created with these steps:
 
 1. Create a virtualenv
 2. Manually install Django and other dependencies
@@ -22,7 +22,6 @@ From this initial state you can:
 * update settings to suit your needs
 * install more Python libraries and add them to the `requirements.txt` file
 
-
 ## Special files in this repository
 
 Apart from the regular files created by Django (`project/*`, `welcome/*`, `manage.py`), this repository contains:
@@ -35,6 +34,17 @@ openshift/         - OpenShift-specific files
 requirements.txt   - list of dependencies
 ```
 
+## Warnings
+
+Please be sure to read the following warnings and considerations before running this code on your local workstation, shared systems, or production environments.
+
+### Database configuration
+
+The sample application code and templates in this repository contain database connection settings and credentials that rely on being able to use sqlite.
+
+### Automatic test execution
+
+The sample application code and templates in this repository contain scripts that automatically execute tests via the postCommit hook.  These tests assume that they are being executed against a local test sqlite database. If alternate database credentials are supplied to the build, the tests could make undesireable changes to that database.
 
 ## Local development
 
@@ -42,23 +52,28 @@ To run this project in your development machine, follow these steps:
 
 1. (optional) Create and activate a [virtualenv](https://virtualenv.pypa.io/) (you may want to use [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/)).
 
-2. Fork this repo and clone your fork:
+2. Ensure that the executable `pg_config` is available on your machine. You can check this using `which pg_config`. If not, install the dependency with one of the following.
+  - macOS: `brew install postgresql` using [Homebrew](https://brew.sh/)
+  - Ubuntu: `sudo apt-get install libpq-dev`
+  - [Others](https://stackoverflow.com/a/12037133/8122577)
 
-    `git clone https://github.com/openshift/django-ex.git`
+3. Fork this repo and clone your fork:
 
-3. Install dependencies:
+    `git clone https://github.com/sclorg/django-ex.git`
+
+4. Install dependencies:
 
     `pip install -r requirements.txt`
 
-4. Create a development database:
+5. Create a development database:
 
     `./manage.py migrate`
 
-5. If everything is alright, you should be able to start the Django development server:
+6. If everything is alright, you should be able to start the Django development server:
 
     `./manage.py runserver`
 
-6. Open your browser and go to http://127.0.0.1:8000, you will be greeted with a welcome page.
+7. Open your browser and go to http://127.0.0.1:8000, you will be greeted with a welcome page.
 
 
 ## Deploying to OpenShift
@@ -80,7 +95,7 @@ After adding your templates, you can go to your OpenShift web console, browse to
 
 Adjust the parameter values to suit your configuration. Most times you can just accept the default values, however you will probably want to set the `GIT_REPOSITORY` parameter to point to your fork and the `DATABASE_*` parameters to match your database configuration.
 
-Alternatively, you can use the command line to create your new app, assuming your OpenShift deployment has the default set of ImageStreams defined.  Instructions for installing the default ImageStreams are available [here](http://docs.openshift.org/latest/admin_guide/install/first_steps.html).  If you are defining the set of ImageStreams now, remember to pass in the proper cluster-admin credentials and to create the ImageStreams in the 'openshift' namespace:
+Alternatively, you can use the command line to create your new app, assuming your OpenShift deployment has the default set of ImageStreams defined.  Instructions for installing the default ImageStreams are available [here](https://docs.okd.io/latest/install_config/imagestreams_templates.html).  If you are defining the set of ImageStreams now, remember to pass in the proper cluster-admin credentials and to create the ImageStreams in the 'openshift' namespace:
 
     oc new-app openshift/templates/django.json -p SOURCE_REPOSITORY_URL=<your repository location>
 
@@ -88,7 +103,7 @@ Your application will be built and deployed automatically. If that doesn't happe
 
     oc get builds
     # take build name from the command above
-    oc build-logs <build-name>
+    oc logs build/<build-name>
 
 And you can see information about your deployment too:
 
@@ -96,7 +111,7 @@ And you can see information about your deployment too:
 
 In the web console, the overview tab shows you a service, by default called "django-example", that encapsulates all pods running your Django application. You can access your application by browsing to the service's IP address and port.  You can determine these by running
 
-   oc get svc
+    oc get svc
 
 
 ### Without an application template
@@ -105,8 +120,8 @@ Templates give you full control of each component of your application.
 Sometimes your application is simple enough and you don't want to bother with templates. In that case, you can let OpenShift inspect your source code and create the required components automatically for you:
 
 ```bash
-$ oc new-app openshift/python-33-centos7~https://github.com/openshift/django-ex
-imageStreams/python-33-centos7
+$ oc new-app centos/python-35-centos7~https://github.com/sclorg/django-ex
+imageStreams/python-35-centos7
 imageStreams/django-ex
 buildConfigs/django-ex
 deploymentConfigs/django-ex
@@ -203,7 +218,7 @@ Redeploy your application to have your changes applied, and open the welcome pag
 
 ## Looking for help
 
-If you get stuck at some point, or think that this document needs further details or clarification, you can give feedback and look for help using the channels mentioned in [the OpenShift Origin repo](https://github.com/openshift/origin), or by filing an issue.
+If you get stuck at some point, or think that this document needs further details or clarification, you can give feedback and look for help using the channels mentioned in [the OKD repo](https://github.com/openshift/origin), or by filing an issue.
 
 
 ## License
